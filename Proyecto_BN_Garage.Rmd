@@ -31,7 +31,8 @@ Creación del Grafo Acíclico Dirigido según probabilidad factorizada.
 ```{r}
 library(bnlearn)
 #solucion
-
+dag<-model2network("[A][T][M|A:T][SP|M][B|M]")
+graphviz.plot(dag,shape="ellipse")
 ```
 
 ## CPT, Tablas de probabilidad condicionada
@@ -39,7 +40,36 @@ library(bnlearn)
 Crea las matrices/arrays de probabilidad condicionada para cada nodo para la creación de una red bayesiana discreta según la librería `bnlearn`.
 
 ```{r}
+A.lv <- c("n", "m", "o")
+A.prob <- array(c(0.20, 0.40, 0.40), dim = 3,dimnames = list(A = A.lv))
+A.prob
 
+T.lv <- c("a1", "a2")
+T.prob <- array(c(0.30, 0.70), dim = 2,dimnames = list(T = T.lv))
+T.prob
+
+M.lv <- c("h", "l")
+#P(M|A,T) # dim <- #dim(M)=2, dim(A)=3, dim(T)=2
+M.prob <- array(c(0.10, 0.60, 0.70, 0.90, 0.40, 0.30, 0.20, 0.7, 0.90, 0.80, 0.30, 0.10), 
+                dim = c(2,3,2),dimnames = list(M = M.lv, A = A.lv, T = T.lv))
+M.prob
+ftable(M.prob)
+
+SP.lv <- c("yes", "no")
+#P(SP|M) # dim <- #dim(SP)=2, dim(M)=2
+SP.prob <- array(c(0.80, 0.20, 0.10, 0.90), dim = c(2,2),
+                 dimnames = list(SP = SP.lv, M = M.lv))
+SP.prob
+ftable(SP.prob, col.vars='SP')
+
+B.lv <- c("yes", "no")
+#P(B|M) # dim <- #dim(B)=2, dim(M)=2
+B.prob <- array(c(0.70, 0.30, 0.10, 0.90), dim = c(2,2),dimnames = list(B = B.lv, M = M.lv))
+B.prob
+ftable(B.prob, col.vars='B')
+
+cpt<-list(A=A.prob,T=T.prob, M=M.prob, SP=SP.prob, B=B.prob)
+cpt
 ```
 
 ## Red Bayesiana
