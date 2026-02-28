@@ -50,7 +50,14 @@ T.prob
 
 M.lv <- c("h", "l")
 #P(M|A,T) # dim <- #dim(M)=2, dim(A)=3, dim(T)=2
-M.prob <- array(c(0.10, 0.60, 0.70, 0.90, 0.40, 0.30, 0.20, 0.7, 0.90, 0.80, 0.30, 0.10), 
+M.prob <- array(c( # T = a1
+    0.1, 0.9,   # A=n: M=h, M=l
+    0.6, 0.4,   # A=m
+    0.7, 0.3,   # A=o
+    # T = a2
+    0.2, 0.8,   # A=n
+    0.7, 0.3,   # A=m
+    0.9, 0.1),    # A=o 
                 dim = c(2,3,2),dimnames = list(M = M.lv, A = A.lv, T = T.lv))
 M.prob
 ftable(M.prob)
