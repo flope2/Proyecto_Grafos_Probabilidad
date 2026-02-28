@@ -78,6 +78,7 @@ Unimos el grafo y las distribuciones locales para crear la *Red Bayesiana*.
 
 ```{r}
 bn <- custom.fit(dag,cpt)
+bn
 ```
 
 # Inferencia
