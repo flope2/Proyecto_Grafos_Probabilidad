@@ -50,30 +50,34 @@ T.prob
 
 M.lv <- c("h", "l")
 #P(M|A,T) # dim <- #dim(M)=2, dim(A)=3, dim(T)=2
-M.prob <- array(c( # T = a1
-    0.1, 0.9,   # A=n: M=h, M=l
-    0.6, 0.4,   # A=m
-    0.7, 0.3,   # A=o
-    # T = a2
-    0.2, 0.8,   # A=n
-    0.7, 0.3,   # A=m
-    0.9, 0.1),    # A=o 
-                dim = c(2,3,2),dimnames = list(M = M.lv, A = A.lv, T = T.lv))
+M.prob <- array(c(0.1, 0.9,   
+                  0.6, 0.4,   
+                  0.7, 0.3,   
+                  0.2, 0.8,
+                  0.7, 0.3, 
+                  0.9, 0.1), 
+                dim = c(2,3,2),
+                dimnames = list(M = M.lv, A = A.lv, T = T.lv))
 M.prob
-ftable(M.prob)
+#ftable(M.prob)
 
 SP.lv <- c("yes", "no")
 #P(SP|M) # dim <- #dim(SP)=2, dim(M)=2
-SP.prob <- array(c(0.80, 0.20, 0.10, 0.90), dim = c(2,2),
+SP.prob <- array(c(0.80, 0.20, 
+                   0.10, 0.90), 
+                 dim = c(2,2),
                  dimnames = list(SP = SP.lv, M = M.lv))
 SP.prob
-ftable(SP.prob, col.vars='SP')
+#ftable(SP.prob, col.vars='SP')
 
 B.lv <- c("yes", "no")
 #P(B|M) # dim <- #dim(B)=2, dim(M)=2
-B.prob <- array(c(0.70, 0.30, 0.10, 0.90), dim = c(2,2),dimnames = list(B = B.lv, M = M.lv))
+B.prob <- array(c(0.70, 0.30, 
+                  0.10, 0.90), 
+                dim = c(2,2),
+                dimnames = list(B = B.lv, M = M.lv))
 B.prob
-ftable(B.prob, col.vars='B')
+#ftable(B.prob, col.vars='B')
 
 cpt<-list(A=A.prob,T=T.prob, M=M.prob, SP=SP.prob, B=B.prob)
 cpt
@@ -106,28 +110,42 @@ Determina las probabilidades del Kilometraje de los vehículos, $P(M)$, sin ning
 
 ```{r}
 #solucion
-
+library(gRain)
+jt<-compile(as.grain(bn)) #juntion tree permite la inferencia exacta en redes bayesianas
+plot(jt) 
+summary(jt) 
+q<-querygrain(jt,node='M',type='marginal')$M #es probabilidad marginal
+q
+barplot(q)
 ```
+Sí, el resultado más esperado es un kilometraje alto P(M=h) = 0.638.
 
 Interpreta la etiquetas de la Edad en función del Kilometraje.
 
 ```{r}
 #solución 
-
+querygrain(jt,node=c('A','M'),type='conditional')
 ```
+Acorde a los resultados, se espera un kilometraje alto en personas de mayor edad, siendo poco probable un kilometraje bajo en este mismo grupo. 
 
 ¿Qué combinación de Edad y tipo de coche es menos frecuente?
 
 ```{r}
 #solución 
-
+querygrain(jt,node=c('A','T'),type='joint')
 ```
+La combinación de edad n y tipo de coche a1 es la menos frecuente.
 
 Determina el Kilometraje medio para cada tipo de coche. Supón que `h=high=150000` y `l=low=50000`
 
 ```{r}
 #solución 
-
+#E(M|T) = P(M=h|T).150000 + P(M=l|T).50000
+q<-querygrain(jt,node=c('M','T'),type='conditional')
+q
+valores_m <- c(h = 150000, l = 50000)
+kilometraje_medio <- colSums(q * valores_m)
+kilometraje_medio
 ```
 
 Nos llama la grúa al taller y sabemos que nos llega un coche de tal edad y tipo. ¿Qué probabilidad esperamos de cambiarle los frenos? **Nota: mira la ayuda de querygrain para condicionar por 2 variables**
