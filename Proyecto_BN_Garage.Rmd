@@ -22,7 +22,7 @@ Un taller dispone de una *Red Bayesiana* para modelizar las probabilidades de su
 
 Escribe de manera **factorizada** la función densidad de probabilidad conjunta P(A,T,M,SP,B)
 
-$P(A,T,M,SP,B)=$
+$P(A,T,M,SP,B)= P(A)*P(T)*P(M|A,T)*P(SP|M)*P(B|M)$
 
 ## Grafo Acíclico Dirigido
 
@@ -126,7 +126,7 @@ Interpreta la etiquetas de la Edad en función del Kilometraje.
 #solución 
 querygrain(jt,node=c('A','M'),type='conditional')
 ```
-Acorde a los resultados, se espera un kilometraje alto en personas de mayor edad, siendo poco probable un kilometraje bajo en este mismo grupo. 
+Acorde a los resultados, a medida que aumenta la edad, aumenta la probabilidad de un kilometraje alto (M=h). 
 
 ¿Qué combinación de Edad y tipo de coche es menos frecuente?
 
