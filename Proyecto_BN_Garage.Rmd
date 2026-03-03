@@ -118,6 +118,7 @@ q<-querygrain(jt,node='M',type='marginal')$M #es probabilidad marginal
 q
 barplot(q)
 ```
+
 Sí, el resultado más esperado es un kilometraje alto P(M=h) = 0.638.
 
 Interpreta la etiquetas de la Edad en función del Kilometraje.
@@ -126,6 +127,7 @@ Interpreta la etiquetas de la Edad en función del Kilometraje.
 #solución 
 querygrain(jt,node=c('A','M'),type='conditional')
 ```
+
 Acorde a los resultados, a medida que aumenta la edad, aumenta la probabilidad de un kilometraje alto (M=h). 
 
 ¿Qué combinación de Edad y tipo de coche es menos frecuente?
@@ -134,6 +136,7 @@ Acorde a los resultados, a medida que aumenta la edad, aumenta la probabilidad d
 #solución 
 querygrain(jt,node=c('A','T'),type='joint')
 ```
+
 La combinación de edad n y tipo de coche a1 es la menos frecuente.
 
 Determina el Kilometraje medio para cada tipo de coche. Supón que `h=high=150000` y `l=low=50000`
@@ -152,15 +155,23 @@ Nos llama la grúa al taller y sabemos que nos llega un coche de tal edad y tipo
 
 ```{r}
 #solución 
-
+prob_frenos<-querygrain(jt,node=c('B','A','T'),type='conditional')
+prob_frenos
 ```
+
+Si el coche es más viejo, tanto en el tipo a1 y a2, la probabilidad de necesitar un cambio de frenos es cada vez mayor; sin embargo los coches a2 tienen una probabilidad mayor de necesitar estos cambios.
 
 ¿Cuál es la situación más probable (MAP) en nuestro taller? ¿tiene sentido?
 
 ```{r}
 #solucion
-
+Pjoint<-querygrain(jt,nodes=c("A","T","M","SP","B"),type="joint")
+nombres<-dimnames(Pjoint)
+indices<-arrayInd(which.max(Pjoint),.dim=dim(Pjoint))
+c(max(Pjoint),mapply(`[`, nombres, indices))
 ```
+
+La situación más probable, con 14.11%, en el taller es tratar con un coche de tipo a2, que es viejo (Edad = o), ya esta combinación sugiere un kilometraje alto (M=h). Un cohce viejo, de tipo a2 y con kilometraje alto tiene altas probabilidads de necesitar tanto cambio de bujías como de frenos. 
 
 ## Razonamiento con Evidencias
 
@@ -168,29 +179,55 @@ Determina cómo se modifica la probabilidad de cambiar los frenos si sabemos que
 
 ```{r}
 #solucion
+q_base<-querygrain(jt,node="B",type="marginal")$B
+q_base
 
+q_viejo<-querygrain(jt,node=c("B","A"),type="conditional")
+q_viejo
+q_viejo[,"o"]
 ```
+
+La probabilidad de cambiar los frenos si sabemos que el vehículo es viejo aumenta, pasa del 48% a 60%, según las diapositivas de clase esto es razonamiento causal, debido a que como se puede ver en el grafo, la edad actua como causa del kilometraje y el kilometraje causa el cambio en los frenos. Como se indica en las diapositivas de clase esto es un razonamiento descendente.
 
 Determina cómo se modifica la probabilidad de que el vehículo sea nuevo, cuando sabemos que necesita un cambio de bujías y de frenos. ¿(según las diapositivas de clase) es razonamiento evidencial o causal?
 
 ```{r}
 #solucion
+q_base2<-querygrain(jt,node="A",type="marginal")$A
+q_base2
 
+q_nuevo<-querygrain(jt,node=c("A","SP","B"),type="conditional")
+q_nuevo
+q_nuevo[,"yes","yes"]
 ```
+
+La probabilidad de que el vehículo sea nuevo cuando ya sabemos que necesita cambio de bujías y de frenos baja considerablemente, de 20% a 5%, lo que hace sentido debido a que si el vehículo necesita ya estos cambios, la red infiere que tiene un alto kilometraje lo que no se asocia mucho a un coche nuevo. En este caso, el razonamiento es evidencial, ya que como se mencionó se saben los efectos, y apartir de ellos se intenta inferir la causa original, es decir un razonamineto ascendente.
 
 Determina cómo se modifica la probabilidad de la edad para cada tipo de vehículo, cuando sabemos que Kilometraje es alto.
 
 ```{r}
 #solución 
+q_base3<-querygrain(jt,node=c("A","T"),type="conditional")
+q_base3
 
+q_kmalto<-querygrain(jt,node=c("A","T","M"),type="conditional")
+q_kmalto[,,"h"]
 ```
+
+Cuando sabemos que el kilometraje es alto se modifica la probabildiad de la edad para cada vehículo, para ambos tipos de vehículos aumenta la probabilidad de que sea de tipo m u o, lo que hace sentido, y se disminuye la probabilidad de que sea nuevo.
 
 ¿Cómo se modifican las expectativas (de las combinaciones) de las reparaciones cuando se modifica el tipo de coche?
 
 ```{r}
 #solucion
+q_tipo<-querygrain(jt,node=c("SP","B","T"),type="conditional")
 
+q_tipo[,,"a1"]
+
+q_tipo[,,"a2"]
 ```
+
+Las combinaciones cuando se modifica el tipo de coche es que cuando el coche necesita los frenos, la probabildiad de que sea de tipo a2 es más alta que si es de tipo a1; esto hace sentido debido a que los tipo a1 suelen tener un mayor kilometraje y por ende piezas más propensas a necesitar el cambio, por eso también ese aumento en la probabilidad de necesitar cambio de bujias.  
 
 Interpreta el siguiente código... ¿cuándo puede ser interesante la versión 2) de la consulta?
 
@@ -207,6 +244,8 @@ querygrain(jtMsoft,nodes=c("B"),type="marginal")
 querygrain(jt,nodes=c("B"),type="marginal")
 ```
 
+Es interesante la versión 2 de la consulta cuando no se tiene una certeza absoluta de las variables, y por eso se les asigna un porcentaje en base a conocimiento o recopilación de información que se pueda hacer, así se considera una incertidumbre en las observaciones que se hagan y por ende en los resultados de las predicciones. 
+
 # Reto analista.
 
 Plantea 3 preguntas/cuestiones al "Garage". Desarrolla la consulta probabilista y comenta la respuesta.
@@ -214,5 +253,30 @@ Plantea 3 preguntas/cuestiones al "Garage". Desarrolla la consulta probabilista 
 *Nota: Puedes añadir/quitar cualquier elemento o dato que consideres necesario.*
 
 ```{r}
-
+#Probabildiad de que un coche viejo de tipo a2 no necesite cambio de frenos ni bujía
+q1<-querygrain(jt,nodes=c("SP","B","A","T"),type="conditional")
+q1["no","no","o","a2"]
 ```
+
+Esto nos da un probabilidad relativamente baja, de clientes con estas condiciones, y que tengan la suerte de no necesitar ni frenos o bujías nuevas. Modificando parámetros esta misma metodología serviría para identificar que clientes no generarán ingresos al taller.
+
+```{r}
+q2.1<-querygrain(jt,nodes=c("B","A"),type="conditional")
+q2.1["yes","o"]
+
+q2.2<-querygrain(jt,nodes=c("B","SP"),type="conditional")
+q2.2["yes","yes"]
+```
+
+Con esta consulta se busca saber, si es más probable el cambio de frenos si sabemos que el coche es viejo o si necesita cambio de bujías; por lo obtenido se ve que es más informativo con respecto al cambio en los frenos el efecto relacionado de las bujías, que saber únicamente que es viejo. De esta forma el taller puede tener una idea de lo que necesitan coches a atender si se tiene información adicional del coche. 
+
+
+```{r}
+q3<-querygrain(jt,nodes=c("SP","B"),type="joint")
+
+q3["yes","yes"]
+q3["no","no"]
+```
+
+Se busca saber si entra un cliente al taller, y no se sabe nada de su coche, cual es la probabilidad que su coche no necesite nada, o que necesite cambio tanto de bujias como de frenos. 
+Con esto, y de forma muy general, el taller puede tener una idea de cómo es el trabajo que está asumiendo, ya que si la posibilidad de que un cliente necesite cambiar todo, supera ampliamente a la posibilidad de que no necesite nada, se pueden tomar decisiones con respecto a la capacidad (inventario o mano de obra) necesaria para afrontar el trabajo.
